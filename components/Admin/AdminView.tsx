@@ -111,8 +111,7 @@ const AdminView: React.FC<AdminViewProps> = ({
         const publicUrl = await dbService.uploadMediaToCloud(file, folder);
 
         if (!publicUrl) {
-          // Failure here usually means the 'media' bucket is missing in Supabase
-          throw new Error(`Upload failed for ${file.name}. Check if 'media' bucket exists!`);
+          throw new Error(`Upload failed for ${file.name}.`);
         }
 
         const newMedia: MediaFile = {

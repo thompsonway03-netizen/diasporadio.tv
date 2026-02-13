@@ -368,7 +368,7 @@ class DBService {
 
     if (error) {
       console.error('❌ Cloud Upload Error:', error.message);
-      return null;
+      throw new Error(`Cloud Upload Error: ${error.message}`);
     }
 
     const { data: urlData } = supabase.storage

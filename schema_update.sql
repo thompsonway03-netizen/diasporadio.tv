@@ -75,3 +75,17 @@ SET is_tv_active = EXCLUDED.is_tv_active,
 
 -- 8. Final Check
 SELECT * FROM station_state;
+
+-- ==========================================
+-- 🛠️ STORAGE POLICY GUIDE (MANUAL STEP)
+-- ==========================================
+-- Supabase Storage requires "Policies" to allow uploads.
+-- If the script above doesn't fix it, run these in the SQL Editor:
+
+-- allow public to upload to 'media' bucket
+-- insert into storage.policies (name, bucket_id, definition, operation)
+-- values ('Public Upload', 'media', '(bucket_id = ''media''::text)', 'INSERT');
+
+-- allow public to view 'media' bucket
+-- insert into storage.policies (name, bucket_id, definition, operation)
+-- values ('Public View', 'media', '(bucket_id = ''media''::text)', 'SELECT');
