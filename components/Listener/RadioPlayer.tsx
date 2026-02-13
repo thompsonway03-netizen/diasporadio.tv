@@ -47,9 +47,10 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
     try {
       if (!audioRef.current) return;
 
-      // Don't create audio context for live streams initially
-      // Some streams have issues with MediaElementSource
-      if (isStreamRef.current) return;
+      // ALLOW visualization for cloud hosted files (Supabase/Vercel)
+      // Only exclude REAL live streams (Icecast/Zeno)
+      const isRealStream = activeTrackUrl && (activeTrackUrl.includes('zeno.fm') || activeTrackUrl.includes('shoutcast') || activeTrackUrl.includes('icecast'));
+      if (isRealStream && isStreamRef.current) return;
 
       if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -59,6 +60,8 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
       if (ctx.state === 'suspended') {
         ctx.resume().catch(console.warn);
       }
+
+      (window as any).resumeRadioAudioContext = () => ctx.resume();
 
       if (!gainNodeRef.current) {
         const gain = ctx.createGain();
@@ -216,7 +219,10 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
       console.log('📻 RadioPlayer received URL:', targetSrc);
       if (audioRef.current.src !== targetSrc) {
         const isLocal = targetSrc.startsWith('blob:') || targetSrc.startsWith('data:');
-        isStreamRef.current = !isLocal;
+        const isCloud = targetSrc.includes('.supabase.co') || targetSrc.includes('vercel.app') || targetSrc.includes('ndradiotv');
+
+        // Only mark as "Stream" if not local and not from our own cloud (to allow viz)
+        isStreamRef.current = !isLocal && !isCloud;
 
         if (isLocal) {
           audioRef.current.crossOrigin = null;
@@ -230,10 +236,8 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
         audioRef.current.load();
 
         if (isPlaying || forcePlaying) {
-          // Only init audio context for local files
-          if (!isStreamRef.current) {
-            initAudioContext();
-          }
+          // Initialize for all suitable sources
+          initAudioContext();
 
           audioRef.current.play().catch(err => {
             console.warn("Autoplay blocked or stream error:", err);
@@ -398,17 +402,21 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
       setStatus('LOADING');
       setErrorMessage('');
 
-      // Only init audio context for local files
-      if (!isStreamRef.current) {
-        initAudioContext();
-      }
-
       try {
         if (isDucking) {
           setErrorMessage("Cannot play during News Broadcast");
           setStatus('IDLE');
           return;
         }
+
+        // FORCE resume on user click to ensure visualizer starts on mobile
+        if (audioContextRef.current) {
+          await audioContextRef.current.resume();
+        } else {
+          initAudioContext();
+          if (audioContextRef.current) await audioContextRef.current.resume();
+        }
+
         await audioRef.current.play();
       } catch (err: any) {
         console.error("Play error:", err);

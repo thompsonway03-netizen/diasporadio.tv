@@ -540,6 +540,9 @@ const App: React.FC = () => {
                   setListenerHasPlayed(true);
                   setShowJoinPrompt(false);
                   setHasInteracted(true);
+                  if ((window as any).resumeRadioAudioContext) {
+                    (window as any).resumeRadioAudioContext();
+                  }
                 }}
                 className="w-full bg-[#008751] text-white py-4 rounded-2xl font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
               >
