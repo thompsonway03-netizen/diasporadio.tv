@@ -174,14 +174,18 @@ const App: React.FC = () => {
           }
 
           if (newState.current_track_id) {
+            console.log("🎯 [App] Listener Syncing Track:", newState.current_track_name);
             setActiveTrackId(newState.current_track_id);
             setActiveTrackUrl(newState.current_track_url);
             setCurrentTrackName(newState.current_track_name);
 
             // Re-sync URL from library if the cloud URL is missing but ID is present
-            if (!newState.current_track_url && allMedia.length > 0) {
+            if (!newState.current_track_url && allMedia.length > 0 && newState.current_track_id !== 'jingle') {
               const track = allMedia.find(m => m.id === newState.current_track_id);
-              if (track && track.url) setActiveTrackUrl(track.url);
+              if (track && track.url) {
+                console.log("🔗 [App] Resolved URL from local library:", track.url);
+                setActiveTrackUrl(track.url);
+              }
             }
           }
 
@@ -226,27 +230,26 @@ const App: React.FC = () => {
     };
   }, [role, activeTrackId, fetchData]);
 
-  // Update cloud state when Admin changes something
+  // --- ADMIN MASTER SYNC ---
   useEffect(() => {
     if (role === UserRole.ADMIN && supabase) {
-      // CRITICAL: Only sync if it's a real network URL, not a local blob
-      const isCloudUrl = activeTrackUrl && (activeTrackUrl.startsWith('http://') || activeTrackUrl.startsWith('https://')) && !activeTrackUrl.startsWith('blob:');
+      // CRITICAL: Handle URLs, Clouds, and Jingles
+      const isUrl = activeTrackUrl && (activeTrackUrl.startsWith('http') || activeTrackUrl.startsWith('https'));
+      const isCloudUrl = isUrl && !activeTrackUrl?.startsWith('blob:');
+      const isJingle = activeTrackId === 'jingle' || (!isUrl && activeTrackUrl && activeTrackUrl.toLowerCase().includes('.mp3'));
+
+      console.log("📤 [App] Admin Syncing State. URL Type:", isCloudUrl ? "Cloud" : isJingle ? "Jingle" : "None");
 
       dbService.updateStationState({
         is_playing: isPlaying,
         is_tv_active: isTvActive,
         current_track_id: activeTrackId,
         current_track_name: currentTrackName,
-        current_track_url: isCloudUrl ? activeTrackUrl : null,
+        current_track_url: isCloudUrl ? activeTrackUrl : (isJingle ? activeTrackUrl : null),
         current_video_id: activeVideoId,
         timestamp: Date.now()
       }).catch(err => {
-        console.error("❌ Global Sync Failed:", err);
-        // Only show red if it's a real schema/permission error, not just a network blip
-        if (err.message && (err.message.includes('403') || err.message.includes('permission') || err.message.includes('column'))) {
-          setLastError("Sync Blocked: Please RUN setup SQL (RLS issue)!");
-        }
-        setTimeout(() => setLastError(null), 10000);
+        console.error("❌ Station Sync error", err);
       });
     }
   }, [isPlaying, isTvActive, activeTrackId, currentTrackName, role, activeTrackUrl, activeVideoId]);
@@ -544,7 +547,7 @@ const App: React.FC = () => {
           }}
           activeTrackUrl={activeTrackUrl}
           currentTrackName={currentTrackName}
-          onTrackEnded={handlePlayNext}
+          onTrackEnded={role === UserRole.ADMIN ? handlePlayNext : undefined}
           isDucking={isDucking}
           forcePlaying={role === UserRole.ADMIN ? isPlaying : listenerHasPlayed}
           isAdmin={role === UserRole.ADMIN}
