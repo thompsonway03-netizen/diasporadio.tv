@@ -104,8 +104,13 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
 
     const handleError = (e: Event) => {
       const target = e.target as HTMLAudioElement;
-      let message = 'Playback error';
 
+      // Ignore errors if we are in transition or have no source intentionally
+      if (!target.src || target.src === '' || target.src === window.location.href) {
+        return;
+      }
+
+      let message = 'Playback error';
       if (target.error) {
         switch (target.error.code) {
           case MediaError.MEDIA_ERR_ABORTED:
@@ -123,11 +128,15 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
         }
       }
 
-      console.error("Audio Playback Error:", message, target.error);
-      setErrorMessage(message);
-      setStatus('ERROR');
-      setIsPlaying(false);
-      onStateChange(false);
+      console.error("Audio Playback Error:", message, target.error, "URL:", target.src);
+
+      // Only set error status if it's a real failure while we SHOULD be playing
+      if (status !== 'IDLE') {
+        setErrorMessage(message);
+        setStatus('ERROR');
+        setIsPlaying(false);
+        onStateChange(false);
+      }
     };
 
     const handleCanPlay = () => {
@@ -198,7 +207,8 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
       if (!targetSrc || targetSrc === '' || targetSrc === window.location.href) {
         console.log('📡 [RadioPlayer] Switching to Standby Mode.');
         audioRef.current.pause();
-        audioRef.current.src = "";
+        audioRef.current.removeAttribute('src'); // Better than src = ""
+        audioRef.current.load(); // Force reset state
         setStatus('IDLE');
         return;
       }

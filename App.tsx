@@ -202,14 +202,14 @@ const App: React.FC = () => {
   useEffect(() => {
     if (role === UserRole.ADMIN && supabase) {
       // CRITICAL: Only sync if it's a real network URL, not a local blob
-      const isValidUrl = activeTrackUrl && (activeTrackUrl.startsWith('http://') || activeTrackUrl.startsWith('https://'));
+      const isCloudUrl = activeTrackUrl && (activeTrackUrl.startsWith('http://') || activeTrackUrl.startsWith('https://')) && !activeTrackUrl.startsWith('blob:');
 
       dbService.updateStationState({
         is_playing: isPlaying,
         is_tv_active: isTvActive,
         current_track_id: activeTrackId,
         current_track_name: currentTrackName,
-        current_track_url: isValidUrl ? activeTrackUrl : null,
+        current_track_url: isCloudUrl ? activeTrackUrl : null,
         current_video_id: activeVideoId,
         timestamp: Date.now()
       }).catch(err => {
