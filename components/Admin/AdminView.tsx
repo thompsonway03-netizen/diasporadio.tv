@@ -39,6 +39,7 @@ interface AdminViewProps {
   onPlayVideo?: (track: MediaFile) => void;
   isTvActive?: boolean;
   onToggleTv?: (active: boolean) => void;
+  onResetSync?: () => void;
   reports?: ListenerReport[];
 }
 
@@ -73,7 +74,7 @@ const AdminView: React.FC<AdminViewProps> = ({
   onAddNews,
   onUpdateNews,
   onDeleteNews,
-  mediaFiles = [], status, onRefreshWire, activeVideoId, onPlayVideo, isTvActive, onToggleTv, onDeleteMedia, reports
+  mediaFiles = [], status, onRefreshWire, activeVideoId, onPlayVideo, isTvActive, onToggleTv, onResetSync, onDeleteMedia, reports
 }) => {
   const [activeTab, setActiveTab] = useState<Tab>('command');
   const [mediaSubTab, setMediaSubTab] = useState<MediaSubTab>('audio');
@@ -175,7 +176,7 @@ const AdminView: React.FC<AdminViewProps> = ({
           onClick={() => setActiveTab('command')}
           className={`flex-1 min-w-[50px] py-2 text-center text-[7px] font-bold uppercase transition-colors rounded ${activeTab === 'command' ? 'bg-green-600 text-white shadow-inner' : 'bg-white text-green-800 hover:bg-green-50'}`}
         >
-          Studio v2.2.1
+          Studio v2.2.2
         </button>
         <button
           onClick={() => setActiveTab('bulletin')}
@@ -267,11 +268,24 @@ const AdminView: React.FC<AdminViewProps> = ({
                 </button>
 
                 <button
-                  onClick={onSkipNext}
-                  className="px-4 py-3 bg-white text-green-700 rounded-lg shadow-sm border border-green-200 hover:bg-green-50 transition-colors"
+                  onClick={onResetSync}
+                  className="px-4 py-3 bg-red-50 text-red-700 rounded-lg shadow-sm border border-red-100 hover:bg-red-100 transition-colors text-[8px] font-black uppercase"
+                  title="Hard Reset App State"
                 >
-                  <i className="fas fa-forward"></i>
+                  Hard Reset Sync
                 </button>
+              </div>
+
+              {/* LIBRARY STATS */}
+              <div className="mt-4 flex space-x-2">
+                <div className="flex-1 bg-green-50/50 p-2 rounded-lg border border-green-100 flex items-center justify-between">
+                  <span className="text-[7px] font-bold text-green-700 uppercase tracking-tighter">Music Library</span>
+                  <span className="text-[10px] font-black text-green-900">{mediaFiles.filter(m => m.type === 'audio').length} Files</span>
+                </div>
+                <div className="flex-1 bg-indigo-50/50 p-2 rounded-lg border border-indigo-100 flex items-center justify-between">
+                  <span className="text-[7px] font-bold text-indigo-700 uppercase tracking-tighter">TV Library</span>
+                  <span className="text-[10px] font-black text-indigo-900">{mediaFiles.filter(m => m.type === 'video').length} Files</span>
+                </div>
               </div>
 
               <div className="flex items-center justify-between mt-3 text-[8px] font-bold text-green-700 bg-white/50 p-2 rounded border border-green-100">

@@ -212,6 +212,12 @@ const App: React.FC = () => {
     }
   }, [role, fetchData]);
 
+  const handleResetSync = useCallback(() => {
+    console.log("🔄 [App] Hard Resetting Station Sync...");
+    hasInitialSyncRef.current = false;
+    fetchData();
+  }, [fetchData]);
+
   // --- SUPABASE REAL-TIME SYNC ---
   useEffect(() => {
     if (!supabase) return;
@@ -818,6 +824,7 @@ const App: React.FC = () => {
             onPlayVideo={handlePlayVideo}
             isTvActive={isTvActive}
             onToggleTv={handleVideoToggle}
+            onResetSync={handleResetSync}
             reports={reports}
           />
         )}
