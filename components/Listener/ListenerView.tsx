@@ -156,8 +156,8 @@ const ListenerView: React.FC<ListenerViewProps> = ({
       </section>
 
       {/* 3. TV SECTION (Square Corners) - ALWAYS VISIBLE, TVPlayer handles power-off state */}
-      <section className="shrink-0 animate-tv-flicker">
-        <div className="bg-black border border-green-900/10 shadow-2xl aspect-video mx-auto overflow-hidden rounded-xl">
+      <section className="shrink-0 animate-tv-flicker scale-105">
+        <div className="bg-black shadow-2xl aspect-video mx-auto overflow-hidden">
           <TVPlayer
             activeVideo={activeVideo}
             allVideos={allVideos.filter(v => v.type === 'video')}

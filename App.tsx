@@ -15,6 +15,7 @@ import NDRTVEngine from './components/Admin/NewsRoom/NDRTVEngine';
 import ThompsonEngine from './components/Admin/NewsRoom/ThompsonEngine';
 import FavourEngine from './components/Admin/NewsRoom/FavourEngine';
 import { supabase } from './services/supabaseClient';
+import TVPlayer from './components/Listener/TVChannel/TVPlayer';
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole>(UserRole.LISTENER);
@@ -78,6 +79,22 @@ const App: React.FC = () => {
     return name.replace(/\.(mp3|wav|m4a|aac|ogg|flac|webm|wma)$/i, '');
   };
 
+  // Optimized Track URL Setter
+  const updateTrackUrl = useCallback((id: string | null, url: string | null, name: string) => {
+    setActiveTrackId(prevId => {
+      if (prevId === id) return prevId;
+      return id;
+    });
+    setActiveTrackUrl(prevUrl => {
+      if (prevUrl === url) return prevUrl;
+      return url;
+    });
+    setCurrentTrackName(prevName => {
+      if (prevName === name) return prevName;
+      return name;
+    });
+  }, []);
+
   const fetchData = useCallback(async (forceScan: boolean = false) => {
     try {
       if (forceScan) {
@@ -130,17 +147,16 @@ const App: React.FC = () => {
 
       // Apply initial station state for sync
       if (sState) {
-        setIsPlaying(sState.is_playing);
-        setIsTvActive(sState.is_tv_active);
-        setActiveTrackId(sState.current_track_id);
-        setCurrentTrackName(sState.current_track_name || 'Station Standby');
-        setRadioCurrentTime(sState.current_offset || 0); // Set initial live offset
-        if (sState.current_track_url) {
-          setActiveTrackUrl(sState.current_track_url);
-        } else if (sState.current_track_id && processedMedia.length > 0) {
-          // Fallback: Find it in our processed list if URL didn't sync directly
-          const track = processedMedia.find(m => m.id === sState.current_track_id);
-          if (track && track.url) setActiveTrackUrl(track.url);
+        // STATE GUARD: Only apply remote state if:
+        // 1. We are a listener (listeners must follow the station)
+        // 2. OR we are an admin but have NO active track (initial load)
+        const shouldApplySync = (role === UserRole.LISTENER) || (!activeTrackId && !activeTrackUrl);
+
+        if (shouldApplySync) {
+          setIsPlaying(sState.is_playing);
+          setIsTvActive(sState.is_tv_active);
+          updateTrackUrl(sState.current_track_id, sState.current_track_url, sState.current_track_name || 'Station Standby');
+          setRadioCurrentTime(sState.current_offset || 0); // Set initial live offset
         }
       }
 
@@ -152,12 +168,12 @@ const App: React.FC = () => {
 
       if (activeTrackId && !activeTrackUrl) {
         const activeTrack = processedMedia.find(t => t.id === activeTrackId);
-        if (activeTrack) setActiveTrackUrl(activeTrack.url);
+        if (activeTrack) updateTrackUrl(activeTrack.id, activeTrack.url, activeTrack.name);
       }
     } catch (err) {
       console.error("Data fetch error", err);
     }
-  }, [activeTrackId, activeTrackUrl]);
+  }, [role, updateTrackUrl]); // Removed activeTrackId, activeTrackUrl deps to prevent re-fetch loop
 
   useEffect(() => {
     fetchData();
@@ -198,16 +214,14 @@ const App: React.FC = () => {
 
           if (newState.current_track_id) {
             console.log("🎯 [App] Listener Syncing Track:", newState.current_track_name);
-            setActiveTrackId(newState.current_track_id);
-            setActiveTrackUrl(newState.current_track_url);
-            setCurrentTrackName(newState.current_track_name);
+            updateTrackUrl(newState.current_track_id, newState.current_track_url, newState.current_track_name);
 
             // Re-sync URL from library if the cloud URL is missing but ID is present
             if (!newState.current_track_url && allMediaRef.current.length > 0 && newState.current_track_id !== 'jingle') {
               const track = allMediaRef.current.find(m => m.id === newState.current_track_id);
               if (track && track.url) {
                 console.log("🔗 [App] Resolved URL from local library:", track.url);
-                setActiveTrackUrl(track.url);
+                updateTrackUrl(newState.current_track_id, track.url, newState.current_track_name);
               }
             }
           }
@@ -349,9 +363,7 @@ const App: React.FC = () => {
     const track = audioFiles[nextIndex];
     if (track) {
       console.log('🎵 [App] Advancing to next track:', track.name, 'URL:', track.url);
-      setActiveTrackId(track.id);
-      setActiveTrackUrl(track.url);
-      setCurrentTrackName(cleanTrackName(track.name));
+      updateTrackUrl(track.id, track.url, cleanTrackName(track.name));
       setIsPlaying(true);
 
       // CRITICAL: Push to cloud IMMEDIATELY so listeners don't wait for pulse
@@ -369,7 +381,9 @@ const App: React.FC = () => {
         }).catch(err => console.error("❌ Immediate Advancement Sync Fail:", err));
       }
     }
-  }, [activeTrackId, isShuffle, role, supabase, isTvActive]);
+  }, [activeTrackId, isShuffle, role, supabase, isTvActive]); // activeTrackId is needed to find current index
+
+
 
   const handlePlayAll = useCallback((force = false) => {
     if (isTvActive && !force) {
@@ -387,9 +401,7 @@ const App: React.FC = () => {
       return;
     }
     const track = isShuffle ? audioFiles[Math.floor(Math.random() * audioFiles.length)] : audioFiles[0];
-    setActiveTrackId(track.id);
-    setActiveTrackUrl(track.url);
-    setCurrentTrackName(cleanTrackName(track.name));
+    updateTrackUrl(track.id, track.url, cleanTrackName(track.name));
     setIsPlaying(true);
 
     // CRITICAL: Force cloud sync immediately
@@ -640,6 +652,22 @@ const App: React.FC = () => {
         </div>
       </header>
 
+      {/* ADMIN TV SYNC ENGINE (Invisible) */}
+      {role === UserRole.ADMIN && (
+        <div className="hidden">
+          <TVPlayer
+            activeVideo={allMediaRef.current.find(m => m.id === activeVideoId) || null}
+            allVideos={allMedia.filter(v => v.type === 'video')}
+            news={[]}
+            adminMessages={[]}
+            onVideoAdvance={handlePlayVideo}
+            isNewsPlaying={false}
+            isActive={isTvActive}
+            isAdmin={true}
+          />
+        </div>
+      )}
+
       <main className="flex-grow pt-1 px-1.5">
         <RadioPlayer
           onStateChange={(playing) => {
@@ -708,9 +736,7 @@ const App: React.FC = () => {
             onPlayTrack={(t) => {
               handleStopNews(); // Ensure news stops
               setHasInteracted(true);
-              setActiveTrackId(t.id);
-              setActiveTrackUrl(t.url);
-              setCurrentTrackName(cleanTrackName(t.name));
+              updateTrackUrl(t.id, t.url, cleanTrackName(t.name));
               setListenerHasPlayed(true);
               setIsTvActive(false);
             }}
@@ -736,7 +762,7 @@ const App: React.FC = () => {
           <AdminView
             onRefreshData={fetchData} logs={logs} onPlayTrack={(t) => {
               console.log('▶️ Play Track Clicked:', t.name, t.url);
-              setHasInteracted(true); setActiveTrackId(t.id); setActiveTrackUrl(t.url); setCurrentTrackName(cleanTrackName(t.name)); setIsPlaying(true);
+              setHasInteracted(true); updateTrackUrl(t.id, t.url, cleanTrackName(t.name)); setIsPlaying(true);
               setIsTvActive(false);
             }}
             isRadioPlaying={isPlaying} onToggleRadio={() => setIsPlaying(!isPlaying)}

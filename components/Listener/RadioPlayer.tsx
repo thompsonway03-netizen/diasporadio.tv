@@ -295,9 +295,9 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
   useEffect(() => {
     if (startTime > 0 && audioRef.current && !isAdmin && isPlaying) {
       const diff = Math.abs(audioRef.current.currentTime - startTime);
-      // If we are more than 8 seconds out of sync, force a seek
-      // This handles initial join and major lag without stuttering every pulse
-      if (diff > 8) {
+      // If we are more than 15 seconds out of sync, force a seek
+      // Increased from 8s to prevent "skipping" on minor network jitter
+      if (diff > 15) {
         console.log(`📡 [RadioPlayer] Sync Drift Detected (${diff.toFixed(1)}s). Correcting to ${startTime}s...`);
         audioRef.current.currentTime = startTime;
       }
@@ -394,10 +394,14 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
       // If we SHOULD be playing but audio element is stalled or dead silent
       if (!isAdmin && forcePlaying && audioRef.current) {
         const isActuallyPlaying = !audioRef.current.paused && audioRef.current.readyState >= 2;
-        if (!isActuallyPlaying || audioRef.current.muted) {
-          console.warn("🐕 [Watchdog] Silence detected! Force-reloading sync...");
-          audioRef.current.load();
-          audioRef.current.play().catch(e => console.error("Watchdog recovery failed:", e));
+        // Only reload if we are truly stalled (readyState < 2) and NOT muted
+        if (!isActuallyPlaying && !audioRef.current.muted && audioRef.current.readyState < 2) {
+          console.warn("🐕 [Watchdog] Stall detected! Attempting recovery...");
+          audioRef.current.play().catch(e => {
+            console.log("Watchdog play failed, reloading...");
+            audioRef.current?.load();
+            audioRef.current?.play().catch(pE => console.error("Watchdog total failure:", pE));
+          });
         }
       }
     }, 10000); // Check every 10s
