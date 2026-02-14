@@ -126,7 +126,7 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
                 ref={videoRef}
                 key={currentTrack.url}
                 src={currentTrack.url}
-                className="w-full h-full object-contain pointer-events-none"
+                className="w-full h-full object-cover pointer-events-none"
                 autoPlay={false}
                 muted={isMuted}
                 playsInline

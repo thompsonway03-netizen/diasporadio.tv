@@ -240,8 +240,12 @@ const ListenerView: React.FC<ListenerViewProps> = ({
       </section>
 
       {/* FOOTER */}
-      <footer className="text-center pb-8 mt-4">
-        <p className="text-[10px] font-black uppercase tracking-widest text-green-950/20">{APP_NAME}</p>
+      <footer className="text-center pb-8 mt-4 flex flex-col space-y-2">
+        <p className="text-[10px] font-black uppercase tracking-widest text-green-950/40">{APP_NAME}</p>
+        <div className="flex flex-col items-center">
+          <span className="text-[9px] font-bold text-green-800 uppercase tracking-widest">Designed by Thompson Obosa</span>
+          <span className="text-[8px] text-green-600/60 font-mono mt-0.5">© 2026 Nigeria Diaspora Radio</span>
+        </div>
       </footer>
 
       <style dangerouslySetInnerHTML={{
