@@ -95,6 +95,8 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const hasInitialSyncRef = useRef(false);
+
   const fetchData = useCallback(async (forceScan: boolean = false) => {
     try {
       if (forceScan) {
@@ -113,25 +115,23 @@ const App: React.FC = () => {
 
       const [l, m, msg, rep, cloudNews, sState] = await Promise.all([
         dbService.getLogs(),
-        dbService.getMediaCloud(), // Cloud sync
-        dbService.getAdminMessagesCloud(), // Cloud sync
-        dbService.getReportsCloud(),        // Cloud sync
-        dbService.getNewsFromCloud(),       // Cloud sync
-        dbService.getStationState()         // Initial track sync
+        dbService.getMediaCloud(),
+        dbService.getAdminMessagesCloud(),
+        dbService.getReportsCloud(),
+        dbService.getNewsFromCloud(),
+        dbService.getStationState()
       ]);
 
       setNews(cloudNews || []);
 
       const mediaItems = m || [];
       const processedMedia = mediaItems.map(item => {
-        // Only use blob URL if we don't have a real one or as a backup
         if (item.file) {
           let url = mediaUrlCache.current.get(item.id);
           if (!url) {
             url = URL.createObjectURL(item.file);
             mediaUrlCache.current.set(item.id, url);
           }
-          // Don't overwrite item.url if it already has a cloud URL
           return { ...item, url: item.url || url };
         }
         return item;
@@ -139,7 +139,7 @@ const App: React.FC = () => {
 
       setLogs(l || []);
       setAllMedia(processedMedia);
-      allMediaRef.current = processedMedia; // Update sync lock
+      allMediaRef.current = processedMedia;
       setSponsoredMedia(processedMedia.filter(item => item.type === 'video' || item.type === 'image'));
       setAudioPlaylist(processedMedia.filter(item => item.type === 'audio'));
       setAdminMessages(msg || []);
@@ -149,14 +149,20 @@ const App: React.FC = () => {
       if (sState) {
         // STATE GUARD: Only apply remote state if:
         // 1. We are a listener (listeners must follow the station)
-        // 2. OR we are an admin but have NO active track (initial load)
-        const shouldApplySync = (role === UserRole.LISTENER) || (!activeTrackId && !activeTrackUrl);
+        // 2. OR we are an admin but have NOT done our initial sync yet
+        const isActuallyNone = !activeTrackId && !activeTrackUrl;
+        const shouldApplySync = (role === UserRole.LISTENER) || (role === UserRole.ADMIN && !hasInitialSyncRef.current && isActuallyNone);
 
         if (shouldApplySync) {
+          console.log("🔄 [App] Syncing Initial Station State...");
           setIsPlaying(sState.is_playing);
           setIsTvActive(sState.is_tv_active);
           updateTrackUrl(sState.current_track_id, sState.current_track_url, sState.current_track_name || 'Station Standby');
-          setRadioCurrentTime(sState.current_offset || 0); // Set initial live offset
+          setRadioCurrentTime(sState.current_offset || 0);
+
+          if (role === UserRole.ADMIN) {
+            hasInitialSyncRef.current = true;
+          }
         }
       }
 
@@ -173,7 +179,7 @@ const App: React.FC = () => {
     } catch (err) {
       console.error("Data fetch error", err);
     }
-  }, [role, updateTrackUrl]); // Removed activeTrackId, activeTrackUrl deps to prevent re-fetch loop
+  }, [role, updateTrackUrl, activeTrackId, activeTrackUrl, currentLocation]); // Added missing deps to avoid stale closure
 
   useEffect(() => {
     fetchData();
