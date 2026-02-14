@@ -5,12 +5,13 @@ import { CHANNEL_INTRO } from '../../../constants';
 interface TVOverlayProps {
     isPlaying: boolean;
     onTogglePlay: () => void;
+    onToggleFullscreen?: () => void;
     channelName: string;
     news: NewsItem[];
     adminMessages: AdminMessage[];
 }
 
-const TVOverlay: React.FC<TVOverlayProps> = ({ isPlaying, onTogglePlay, channelName, news, adminMessages }) => {
+const TVOverlay: React.FC<TVOverlayProps> = ({ isPlaying, onTogglePlay, onToggleFullscreen, channelName, news, adminMessages }) => {
     return (
         <div className="absolute inset-0 z-10 pointer-events-none group select-none">
             {/* 1. TOP LEFT: STATION BUG (Reduced Size & Tighter Position) */}
@@ -77,6 +78,18 @@ const TVOverlay: React.FC<TVOverlayProps> = ({ isPlaying, onTogglePlay, channelN
                     ) : (
                         <i className="fas fa-play text-lg ml-1"></i>
                     )}
+                </button>
+
+                {/* Fullscreen Toggle */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleFullscreen?.();
+                    }}
+                    className="w-14 h-14 bg-white/20 hover:bg-white/40 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
+                    title="Fullscreen"
+                >
+                    <i className="fas fa-expand text-lg"></i>
                 </button>
             </div>
 

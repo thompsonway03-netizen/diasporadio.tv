@@ -138,6 +138,10 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
         setStatus('ERROR');
         setIsPlaying(false);
         onStateChange(false);
+
+        // Auto-skip logic: If a track fails to load, move to the next one automatically
+        console.warn("⏭️ [RadioPlayer] Auto-skipping failed track...");
+        onTrackEndedRef.current?.();
       }
     };
 

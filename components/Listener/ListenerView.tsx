@@ -274,12 +274,14 @@ const ListenerView: React.FC<ListenerViewProps> = ({
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="text-center pb-8 mt-4 flex flex-col space-y-2">
-        <p className="text-[10px] font-black uppercase tracking-widest text-green-950/40">{APP_NAME}</p>
-        <div className="flex flex-col items-center">
-          <span className="text-[9px] font-bold text-green-800 uppercase tracking-widest">Designed by Thompson Obosa</span>
-          <span className="text-[8px] text-green-600/60 font-mono mt-0.5">© 2026 Nigeria Diaspora Radio</span>
+      {/* FOOTER - Condensed to single line */}
+      <footer className="text-center pb-8 mt-6">
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-sm rounded-full border border-white/40 shadow-sm mx-auto">
+          <span className="text-[9px] font-black uppercase text-green-950/60 tracking-tight">{APP_NAME}</span>
+          <span className="text-green-950/20">|</span>
+          <span className="text-[9px] font-bold text-green-800 uppercase tracking-tight">Designed by Thompson Obosa</span>
+          <span className="text-green-950/20">|</span>
+          <span className="text-[8px] text-green-600/60 font-mono">© 2026</span>
         </div>
       </footer>
 

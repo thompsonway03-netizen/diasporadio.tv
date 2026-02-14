@@ -27,6 +27,18 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
     const [showStinger, setShowStinger] = useState(false); // Stinger overlay state
     const [isMuted, setIsMuted] = useState(true); // Default Muted
     const videoRef = useRef<HTMLVideoElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const toggleFullscreen = () => {
+        if (!containerRef.current) return;
+        if (!document.fullscreenElement) {
+            containerRef.current.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            document.exitFullscreen();
+        }
+    };
 
     // 1. Sync Play State to Parent
     useEffect(() => {
@@ -120,7 +132,7 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
     }
 
     return (
-        <div className="relative aspect-video bg-black overflow-hidden group select-none shadow-2xl">
+        <div ref={containerRef} className="relative aspect-video bg-black overflow-hidden group select-none shadow-2xl">
             {/* STRICT OVERFLOW CONTROL */}
             <video
                 ref={videoRef}
@@ -148,6 +160,7 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
             <TVOverlay
                 isPlaying={isPlaying}
                 onTogglePlay={togglePlay}
+                onToggleFullscreen={toggleFullscreen}
                 channelName="NDRTV"
                 news={news}
                 adminMessages={adminMessages}
