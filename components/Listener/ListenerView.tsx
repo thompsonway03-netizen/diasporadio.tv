@@ -275,12 +275,12 @@ const ListenerView: React.FC<ListenerViewProps> = ({
       </section>
 
       {/* FOOTER - Spec-aligned single line at the absolute bottom */}
-      <footer className="text-center pb-6 mt-auto">
-        <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 shadow-sm mx-auto">
+      <footer className="w-full text-center pb-4 pt-10 mt-auto">
+        <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-black/5 backdrop-blur-md rounded-full border border-green-900/10 shadow-sm mx-auto">
           <span className="text-[7.5px] font-black uppercase text-green-950/60 tracking-tighter">{APP_NAME}</span>
-          <span className="text-green-950/10 scale-y-125 px-0.5">|</span>
+          <span className="text-green-900/10 scale-y-125 px-0.5">|</span>
           <span className="text-[7.5px] text-green-700/60 font-mono tracking-tighter">© 2026</span>
-          <span className="text-green-950/10 scale-y-125 px-0.5">|</span>
+          <span className="text-green-900/10 scale-y-125 px-0.5">|</span>
           <span className="text-[7.5px] font-bold text-green-800/80 uppercase tracking-tighter">Designed by Obosa Thompson</span>
         </div>
       </footer>
