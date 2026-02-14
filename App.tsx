@@ -369,17 +369,16 @@ const App: React.FC = () => {
         }).catch(err => console.error("❌ Immediate Advancement Sync Fail:", err));
       }
     }
-  }, [activeTrackId, isShuffle, allMedia, role, supabase]);
+  }, [activeTrackId, isShuffle, role, supabase, isTvActive]);
 
-  const handlePlayAll = () => {
-    if (isTvActive) {
+  const handlePlayAll = useCallback((force = false) => {
+    if (isTvActive && !force) {
       console.log('🚫 [App] handlePlayAll blocked (TV is active)');
       return;
     }
     setHasInteracted(true);
-    // Use all audio files from allMedia
-    const audioFiles = allMedia.filter(m => m.type === 'audio');
-    playlistRef.current = audioFiles;
+    // Use stable ref for media library
+    const audioFiles = allMediaRef.current.filter(m => m.type === 'audio');
 
     if (audioFiles.length === 0) {
       // No media files, use default stream
@@ -405,7 +404,7 @@ const App: React.FC = () => {
         timestamp: Date.now()
       }).catch(err => console.error("❌ Play All Sync Error", err));
     }
-  };
+  }, [isShuffle, isTvActive, role, supabase, handleLogAdd]);
 
 
   useEffect(() => {
@@ -498,7 +497,7 @@ const App: React.FC = () => {
 
     if (play) {
       setIsTvActive(false);
-      handlePlayAll(); // This sets isPlaying(true) and updates cloud
+      handlePlayAll(true); // Pass force=true to bypass batching block
     } else {
       setIsPlaying(false);
       setListenerHasPlayed(false);

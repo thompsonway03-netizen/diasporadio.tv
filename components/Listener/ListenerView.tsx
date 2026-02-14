@@ -155,30 +155,28 @@ const ListenerView: React.FC<ListenerViewProps> = ({
         </div>
       </section>
 
-      {/* 3. TV SECTION (Square Corners) - HIDE WHEN INACTIVE TO PREVENT BACKGROUND AUDIO */}
-      {isTvActive && (
-        <section className="shrink-0 animate-tv-flicker">
-          <div className="bg-black border border-green-900/10 shadow-2xl aspect-video mx-auto overflow-hidden rounded-xl">
-            <TVPlayer
-              activeVideo={activeVideo}
-              allVideos={allVideos.filter(v => v.type === 'video')}
-              news={news}
-              adminMessages={adminMessages}
-              onPlayStateChange={(playing) => {
-                setIsTvPlaying(playing);
-                if (playing) {
-                  onRadioToggle(false);
-                  onTvToggle(true);
-                }
-              }}
-              onVideoAdvance={onVideoAdvance}
-              isNewsPlaying={isNewsPlaying}
-              isActive={isTvActive}
-              isAdmin={isAdmin}
-            />
-          </div>
-        </section>
-      )}
+      {/* 3. TV SECTION (Square Corners) - ALWAYS VISIBLE, TVPlayer handles power-off state */}
+      <section className="shrink-0 animate-tv-flicker">
+        <div className="bg-black border border-green-900/10 shadow-2xl aspect-video mx-auto overflow-hidden rounded-xl">
+          <TVPlayer
+            activeVideo={activeVideo}
+            allVideos={allVideos.filter(v => v.type === 'video')}
+            news={news}
+            adminMessages={adminMessages}
+            onPlayStateChange={(playing) => {
+              setIsTvPlaying(playing);
+              if (playing) {
+                onRadioToggle(false);
+                onTvToggle(true);
+              }
+            }}
+            onVideoAdvance={onVideoAdvance}
+            isNewsPlaying={isNewsPlaying}
+            isActive={isTvActive}
+            isAdmin={isAdmin}
+          />
+        </div>
+      </section>
 
       {/* 4. ADS - SPACIOUS */}
       <section className="shrink-0 bg-gray-50 border border-gray-100 rounded-2xl p-4 flex items-center justify-between overflow-hidden shadow-sm">
