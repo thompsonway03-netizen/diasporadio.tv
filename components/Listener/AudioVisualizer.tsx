@@ -11,7 +11,7 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ analyser, isActive, v
   const animationRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!canvasRef.current || !analyser || !isActive) return;
+    if (!canvasRef.current) return; // Removed !analyser and !isActive check to allow resting state rendering
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
@@ -22,15 +22,22 @@ const AudioVisualizer: React.FC<AudioVisualizerProps> = ({ analyser, isActive, v
 
     const draw = () => {
       animationRef.current = requestAnimationFrame(draw);
-      analyser.getByteFrequencyData(dataArray);
+      if (analyser && isActive) {
+        analyser.getByteFrequencyData(dataArray);
+      } else {
+        // Resting state: Populate with low random values (10-30 range)
+        for (let i = 0; i < bufferLength; i++) {
+          dataArray[i] = 20 + Math.random() * 10;
+        }
+      }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       if (variant === 'sides') {
         const barCount = 12;
         const barWidth = canvas.width / barCount - 2;
         const spacing = 2;
-        
+
         for (let i = 0; i < barCount; i++) {
           const index = Math.floor((i / barCount) * (bufferLength / 2));
           const barHeight = (dataArray[index] / 255) * canvas.height * 0.9;
