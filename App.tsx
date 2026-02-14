@@ -683,7 +683,12 @@ const App: React.FC = () => {
         isOnline={supabase}
       />
 
-      <header className="p-4 sticky top-0 z-40 bg-white/90 backdrop-blur-md flex justify-between items-center border-b border-green-50 shadow-sm">
+      {/* DEBUG BANNER - TEMPORARY */}
+      <div className="bg-yellow-400 text-black text-[10px] font-black text-center py-1 uppercase tracking-widest sticky top-0 z-50">
+        ⚠️ DEBUG MODE: V2.3.1 - If you see this, update worked! ⚠️
+      </div>
+
+      <header className="p-4 sticky top-4 z-40 bg-white/90 backdrop-blur-md flex justify-between items-center border-b border-green-50 shadow-sm">
         <div className="flex flex-col">
           <h1 className="text-[10px] font-black uppercase leading-none text-green-950 whitespace-nowrap tracking-tight">{APP_NAME}</h1>
           <span className="text-[6px] font-black text-green-700/50 uppercase tracking-[0.3em] mt-0.5">V2.3.0-LIVE</span>
