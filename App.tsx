@@ -238,6 +238,10 @@ const App: React.FC = () => {
             setActiveVideoId(newState.current_video_id);
           }
 
+          if (newState.current_offset) {
+            setRadioCurrentTime(newState.current_offset);
+          }
+
           if (newState.current_track_id) {
             console.log("🎯 [App] Listener Syncing Track:", newState.current_track_name);
             updateTrackUrl(newState.current_track_id, newState.current_track_url, newState.current_track_name);

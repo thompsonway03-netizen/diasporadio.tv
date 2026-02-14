@@ -176,7 +176,7 @@ const AdminView: React.FC<AdminViewProps> = ({
           onClick={() => setActiveTab('command')}
           className={`flex-1 min-w-[50px] py-2 text-center text-[7px] font-bold uppercase transition-colors rounded ${activeTab === 'command' ? 'bg-green-600 text-white shadow-inner' : 'bg-white text-green-800 hover:bg-green-50'}`}
         >
-          Studio v2.2.3
+          Studio v2.2.4
         </button>
         <button
           onClick={() => setActiveTab('bulletin')}
