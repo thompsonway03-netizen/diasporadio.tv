@@ -31,7 +31,8 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
   activeTrackId,
   isAdmin = false,
   isDucking = false,
-  showPlayButton = true
+  showPlayButton = true,
+  isOnline = false // Default to false
 }) => {
   const [isPlaying, setIsPlaying] = useState(forcePlaying);
   const [volume, setVolume] = useState(1.0);
@@ -506,7 +507,7 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
         status={status}
         onTogglePlayback={handlePlayPause}
         showPlayButton={true}
-        isOnline={props.isOnline}
+        isOnline={isOnline}
       />
 
       <div className="w-full px-8 mt-6 relative z-20">
