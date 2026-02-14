@@ -78,7 +78,7 @@ const TVOverlay: React.FC<TVOverlayProps> = ({
                         e.stopPropagation();
                         onTogglePlay();
                     }}
-                    className="w-10 h-10 bg-white/20 hover:bg-green-600/90 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
+                    className="w-11 h-11 bg-white/20 hover:bg-green-600/90 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
                     title={isPlaying ? "Pause" : "Play"}
                 >
                     {isPlaying ? (
@@ -96,7 +96,7 @@ const TVOverlay: React.FC<TVOverlayProps> = ({
                         e.stopPropagation();
                         onToggleFullscreen?.();
                     }}
-                    className="w-10 h-10 bg-white/20 hover:bg-white/40 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
+                    className="w-11 h-11 bg-white/20 hover:bg-white/40 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
                     title="Fullscreen"
                 >
                     <i className="fas fa-expand text-xs"></i>

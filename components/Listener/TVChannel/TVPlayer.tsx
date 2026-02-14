@@ -46,7 +46,7 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
         setShowControls(true);
         if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
         if (isPlaying) {
-            hideTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
+            hideTimeoutRef.current = setTimeout(() => setShowControls(false), 6000); // 6s instead of 3s
         }
     };
 
@@ -192,7 +192,7 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
 
             {/* Tap surface to show controls */}
             <div
-                className="absolute inset-0 z-0 cursor-pointer"
+                className="absolute inset-0 z-30 cursor-pointer"
                 onClick={resetHideTimer}
                 onMouseMove={resetHideTimer}
             />

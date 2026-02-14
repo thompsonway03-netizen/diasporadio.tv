@@ -273,13 +273,7 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
             console.warn("Visualizer init failed, continuing to play...", vErr);
           }
 
-          audioRef.current.play().then(() => {
-            // Apply Live Sync Offset
-            if (startTime > 0 && audioRef.current && !isAdmin) {
-              console.log(`📡 [RadioPlayer] Live Sync: Seeking to ${startTime}s`);
-              audioRef.current.currentTime = startTime;
-            }
-          }).catch(err => {
+          audioRef.current.play().catch(err => {
             console.warn("Autoplay blocked or stream error:", err);
             // If it was a track failing, try falling back to silent stream
             if (!isStreamRef.current && SILENT_FALLBACK_URL) {
@@ -293,7 +287,20 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
         }
       }
     }
-  }, [activeTrackUrl, startTime, isAdmin]);
+  }, [activeTrackUrl]);
+
+  // LIVE SYNC DRIFT CHECK
+  useEffect(() => {
+    if (startTime > 0 && audioRef.current && !isAdmin && isPlaying) {
+      const diff = Math.abs(audioRef.current.currentTime - startTime);
+      // If we are more than 8 seconds out of sync, force a seek
+      // This handles initial join and major lag without stuttering every pulse
+      if (diff > 8) {
+        console.log(`📡 [RadioPlayer] Sync Drift Detected (${diff.toFixed(1)}s). Correcting to ${startTime}s...`);
+        audioRef.current.currentTime = startTime;
+      }
+    }
+  }, [startTime, isAdmin, isPlaying]);
 
   // Jingle Scheduler Refs
   const lastJingleTimeRef = useRef<number>(Date.now());
