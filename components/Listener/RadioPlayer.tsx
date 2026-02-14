@@ -295,9 +295,9 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
   useEffect(() => {
     if (startTime > 0 && audioRef.current && !isAdmin && isPlaying) {
       const diff = Math.abs(audioRef.current.currentTime - startTime);
-      // If we are more than 15 seconds out of sync, force a seek
-      // Increased from 8s to prevent "skipping" on minor network jitter
-      if (diff > 15) {
+      // If we are more than 3 seconds out of sync, force a seek
+      // Reduced from 15s to 3s for tighter initial sync
+      if (diff > 3) {
         console.log(`📡 [RadioPlayer] Sync Drift Detected (${diff.toFixed(1)}s). Correcting to ${startTime}s...`);
         audioRef.current.currentTime = startTime;
       }

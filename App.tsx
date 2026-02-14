@@ -238,8 +238,16 @@ const App: React.FC = () => {
             setActiveVideoId(newState.current_video_id);
           }
 
-          if (newState.current_offset) {
-            setRadioCurrentTime(newState.current_offset);
+          if (newState.current_offset !== undefined) {
+            // COMPENSATED SYNC: Add lag compensation (Now - LastUpdated)
+            // timestamp is in ms, offset is in seconds
+            const lastUpdated = newState.timestamp || Date.now();
+            const latencyInSeconds = (Date.now() - lastUpdated) / 1000;
+            const compensatedOffset = newState.current_offset + latencyInSeconds;
+
+            // Only update if it's statistically significant to avoid micro-jitters
+            console.log(`⏱️ [Sync] Base: ${newState.current_offset}s | Latency: ${latencyInSeconds.toFixed(2)}s | Target: ${compensatedOffset.toFixed(2)}s`);
+            setRadioCurrentTime(compensatedOffset);
           }
 
           if (newState.current_track_id) {
