@@ -18,6 +18,8 @@ interface ListenerViewProps {
   isRadioPlaying: boolean;
   onRadioToggle: (play: boolean) => void;
   onTvToggle: (active: boolean) => void;
+  onVideoAdvance?: (index: number) => void;
+  isAdmin?: boolean;
   onReport?: (report: ListenerReport) => Promise<void>;
 }
 
@@ -35,6 +37,8 @@ const ListenerView: React.FC<ListenerViewProps> = ({
   isRadioPlaying,
   onRadioToggle,
   onTvToggle,
+  onVideoAdvance,
+  isAdmin = false,
   onReport
 }) => {
   const [location, setLocation] = useState<string>('Syncing...');
@@ -166,8 +170,10 @@ const ListenerView: React.FC<ListenerViewProps> = ({
                 onTvToggle(true);
               }
             }}
+            onVideoAdvance={onVideoAdvance}
             isNewsPlaying={isNewsPlaying}
             isActive={isTvActive}
+            isAdmin={isAdmin}
           />
         </div>
       </section>

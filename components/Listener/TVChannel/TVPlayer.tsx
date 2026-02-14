@@ -9,8 +9,10 @@ interface TVPlayerProps {
     news: NewsItem[];
     adminMessages: AdminMessage[];
     onPlayStateChange?: (isPlaying: boolean) => void;
+    onVideoAdvance?: (index: number) => void; // Sync for Admin
     isNewsPlaying: boolean;
     isActive: boolean;
+    isAdmin?: boolean;
 }
 
 const TVPlayer: React.FC<TVPlayerProps> = ({
@@ -19,8 +21,10 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
     news,
     adminMessages,
     onPlayStateChange,
+    onVideoAdvance,
     isNewsPlaying,
-    isActive
+    isActive,
+    isAdmin = false
 }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -114,8 +118,14 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
     const handleStingerComplete = () => {
         setShowStinger(false);
         // Advance to next video
-        setCurrentIndex((prev) => (prev + 1) % allVideos.length);
+        const nextIndex = (currentIndex + 1) % allVideos.length;
+        setCurrentIndex(nextIndex);
         setIsPlaying(true);
+
+        // ADMIN SYNC: Signal all listeners to advance
+        if (isAdmin && onVideoAdvance) {
+            onVideoAdvance(nextIndex);
+        }
     };
 
     const togglePlay = () => {

@@ -65,6 +65,7 @@ const App: React.FC = () => {
 
   const mediaUrlCache = useRef<Map<string, string>>(new Map());
   const playlistRef = useRef<MediaFile[]>([]);
+  const allMediaRef = useRef<MediaFile[]>([]); // SYNC LOCK
 
 
   const preCacheJingles = useCallback(async () => {
@@ -121,6 +122,7 @@ const App: React.FC = () => {
 
       setLogs(l || []);
       setAllMedia(processedMedia);
+      allMediaRef.current = processedMedia; // Update sync lock
       setSponsoredMedia(processedMedia.filter(item => item.type === 'video' || item.type === 'image'));
       setAudioPlaylist(processedMedia.filter(item => item.type === 'audio'));
       setAdminMessages(msg || []);
@@ -201,8 +203,8 @@ const App: React.FC = () => {
             setCurrentTrackName(newState.current_track_name);
 
             // Re-sync URL from library if the cloud URL is missing but ID is present
-            if (!newState.current_track_url && allMedia.length > 0 && newState.current_track_id !== 'jingle') {
-              const track = allMedia.find(m => m.id === newState.current_track_id);
+            if (!newState.current_track_url && allMediaRef.current.length > 0 && newState.current_track_id !== 'jingle') {
+              const track = allMediaRef.current.find(m => m.id === newState.current_track_id);
               if (track && track.url) {
                 console.log("🔗 [App] Resolved URL from local library:", track.url);
                 setActiveTrackUrl(track.url);
@@ -255,7 +257,7 @@ const App: React.FC = () => {
       supabase.removeChannel(newsChannel);
       supabase.removeChannel(msgChannel);
     };
-  }, [role]); // Only re-run if role changes (e.g. Login/Logout)
+  }, [role, fetchData]); // fetchData is stable from useCallback
 
   // --- ADMIN MASTER SYNC & PULSE ---
   useEffect(() => {
@@ -505,21 +507,34 @@ const App: React.FC = () => {
     }
   }, [role, isPlaying]);
 
-  const handlePlayVideo = useCallback((track: MediaFile) => {
+  const handlePlayVideo = useCallback((track: MediaFile | number) => {
     handleStopNews(); // Ensure news stops
-    setActiveVideoId(track.id);
+
+    let video: MediaFile | undefined;
+    const videoFiles = allMediaRef.current.filter(v => v.type === 'video');
+
+    if (typeof track === 'number') {
+      video = videoFiles[track];
+    } else {
+      video = track;
+    }
+
+    if (!video) return;
+
+    setActiveVideoId(video.id);
     handleRadioToggle(false); // Master stop radio
     setIsTvActive(true);
+
     // Explicitly update cloud so listeners switch
-    if (role === UserRole.ADMIN) {
+    if (role === UserRole.ADMIN && supabase) {
       dbService.updateStationState({
         is_playing: false,
         is_tv_active: true,
-        current_video_id: track.id,
+        current_video_id: video.id,
         timestamp: Date.now()
-      });
+      }).catch(err => console.error("❌ TV Sync error", err));
     }
-    handleLogAdd(`TV Feed: Now Broadcasting ${track.name}`);
+    handleLogAdd(`TV Feed: Now Broadcasting ${video.name}`);
   }, [handleRadioToggle, handleLogAdd, handleStopNews, role]);
 
   return (
@@ -679,13 +694,15 @@ const App: React.FC = () => {
               setIsTvActive(false);
             }}
             onPlayVideo={handlePlayVideo}
-            activeVideo={allMedia.find(m => m.id === activeVideoId) || null}
+            onVideoAdvance={(idx) => handlePlayVideo(idx)}
+            activeVideo={allMediaRef.current.find(m => m.id === activeVideoId) || null}
             isNewsPlaying={isDucking}
             isTvActive={isTvActive}
             allVideos={allMedia}
             isRadioPlaying={listenerHasPlayed}
             onRadioToggle={handleRadioToggle}
             onTvToggle={handleVideoToggle}
+            isAdmin={role === UserRole.ADMIN}
             onReport={async (report) => {
               await dbService.addReportCloud(report);
               fetchData();
