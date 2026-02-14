@@ -263,7 +263,7 @@ const App: React.FC = () => {
       supabase.removeChannel(newsChannel);
       supabase.removeChannel(msgChannel);
     };
-  }, [role, activeTrackId, fetchData]);
+  }, [role]); // Only re-run if role changes (e.g. Login/Logout)
 
   // --- ADMIN MASTER SYNC & PULSE ---
   useEffect(() => {
