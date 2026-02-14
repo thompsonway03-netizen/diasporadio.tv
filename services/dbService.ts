@@ -8,6 +8,7 @@ export interface StationState {
   current_track_name: string;
   current_track_url: string | null;
   current_video_id: string | null;
+  current_offset: number; // LIVE SYNC OFFSET
   timestamp: number;
   last_updated: number;
 }

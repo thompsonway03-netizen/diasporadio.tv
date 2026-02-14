@@ -239,40 +239,7 @@ const ListenerView: React.FC<ListenerViewProps> = ({
         </div>
       </section>
 
-      {/* 7. MUSIC GALLERY (Playback Only) */}
-      <section className="space-y-3 pb-8">
-        <h3 className="text-[10px] font-black uppercase text-green-700/60 tracking-widest px-1">Music Gallery</h3>
-        <div className="bg-white/40 border border-green-50 rounded-2xl p-4 shadow-sm overflow-hidden">
-          <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto no-scrollbar pr-1">
-            {allVideos.filter(m => m.type === 'audio').length > 0 ? (
-              allVideos.filter(m => m.type === 'audio').map((track) => (
-                <div key={track.id} className="flex items-center justify-between p-3 bg-white/80 rounded-xl border border-green-50/50 shadow-sm group hover:border-green-400 transition-all">
-                  <div className="flex items-center space-x-3 overflow-hidden">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
-                      <i className="fas fa-music text-xs"></i>
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[9px] font-black text-green-950 uppercase truncate">{track.name.replace(/\.[^/.]+$/, "")}</span>
-                      <span className="text-[7px] text-green-600/60 font-mono">Nigeria Diaspora Radio</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => onPlayTrack(track)}
-                    className="w-8 h-8 rounded-full bg-green-800 text-white flex items-center justify-center shadow-md active:scale-90 transition-all"
-                    title="Play Track"
-                  >
-                    <i className="fas fa-play text-[8px] ml-0.5"></i>
-                  </button>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 opacity-20">
-                <span className="text-[6px] font-black uppercase tracking-widest">Library Syncing...</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* 7. MUSIC GALLERY REMOVED AS REQUESTED BY USER */}
 
       {/* FOOTER - Spec-aligned single line at the absolute bottom */}
       <footer className="w-full text-center pb-4 pt-10 mt-auto">

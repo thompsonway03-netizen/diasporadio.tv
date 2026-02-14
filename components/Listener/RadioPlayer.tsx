@@ -7,22 +7,28 @@ import Logo from '../Shared/Logo';
 
 interface RadioPlayerProps {
   onStateChange: (isPlaying: boolean) => void;
+  onTimeUpdate?: (currentTime: number) => void; // Tracking for master sync
+  startTime?: number; // Seek to live position
   activeTrackUrl?: string | null;
   currentTrackName?: string;
   forcePlaying?: boolean;
   onTrackEnded?: () => void;
   isAdmin?: boolean;
   isDucking?: boolean;
+  showPlayButton?: boolean;
 }
 
 const RadioPlayer: React.FC<RadioPlayerProps> = ({
   onStateChange,
+  onTimeUpdate,
+  startTime = 0,
   activeTrackUrl,
   currentTrackName = 'Live Stream',
   forcePlaying = false,
   onTrackEnded,
   isAdmin = false,
-  isDucking = false
+  isDucking = false,
+  showPlayButton = true
 }) => {
   const [isPlaying, setIsPlaying] = useState(forcePlaying);
   const [volume, setVolume] = useState(1.0);
@@ -163,7 +169,10 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
     audio.addEventListener('waiting', () => setStatus('LOADING'));
     audio.addEventListener('playing', handlePlay);
     audio.addEventListener('ended', () => onTrackEndedRef.current?.());
-    audio.addEventListener('timeupdate', () => setCurrentTime(audio.currentTime));
+    audio.addEventListener('timeupdate', () => {
+      setCurrentTime(audio.currentTime);
+      onTimeUpdate?.(audio.currentTime);
+    });
     audio.addEventListener('loadedmetadata', () => setDuration(audio.duration));
     audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('loadstart', handleLoadStart);
@@ -264,7 +273,13 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
             console.warn("Visualizer init failed, continuing to play...", vErr);
           }
 
-          audioRef.current.play().catch(err => {
+          audioRef.current.play().then(() => {
+            // Apply Live Sync Offset
+            if (startTime > 0 && audioRef.current && !isAdmin) {
+              console.log(`📡 [RadioPlayer] Live Sync: Seeking to ${startTime}s`);
+              audioRef.current.currentTime = startTime;
+            }
+          }).catch(err => {
             console.warn("Autoplay blocked or stream error:", err);
             // If it was a track failing, try falling back to silent stream
             if (!isStreamRef.current && SILENT_FALLBACK_URL) {
@@ -278,7 +293,7 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
         }
       }
     }
-  }, [activeTrackUrl]);
+  }, [activeTrackUrl, startTime, isAdmin]);
 
   // Jingle Scheduler Refs
   const lastJingleTimeRef = useRef<number>(Date.now());
@@ -418,8 +433,8 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
   }, [forcePlaying, isDucking]); // Keeping isDucking in deps to respond to changes if needed, but logic currently ignores it for pausing
 
   useEffect(() => {
-    // Apply volume settings
-    const targetGain = isDucking ? volume * 0.15 : volume;
+    // Apply volume settings - FULL SILENCE during News as requested
+    const targetGain = isDucking ? 0 : volume;
     if (gainNodeRef.current && audioContextRef.current && audioContextRef.current.state !== 'closed') {
       gainNodeRef.current.gain.setTargetAtTime(targetGain, audioContextRef.current.currentTime, 0.1);
     } else if (audioRef.current) {

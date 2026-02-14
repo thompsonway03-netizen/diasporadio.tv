@@ -26,8 +26,10 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showStinger, setShowStinger] = useState(false); // Stinger overlay state
     const [isMuted, setIsMuted] = useState(true); // Default Muted
+    const [showControls, setShowControls] = useState(true); // Auto-hide controls
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const toggleFullscreen = () => {
         if (!containerRef.current) return;
@@ -39,6 +41,27 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
             document.exitFullscreen();
         }
     };
+
+    const resetHideTimer = () => {
+        setShowControls(true);
+        if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+        if (isPlaying) {
+            hideTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
+        }
+    };
+
+    // Auto-hide controls when playing
+    useEffect(() => {
+        if (isPlaying) {
+            resetHideTimer();
+        } else {
+            setShowControls(true);
+            if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+        }
+        return () => {
+            if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+        };
+    }, [isPlaying]);
 
     // 1. Sync Play State to Parent
     useEffect(() => {
@@ -164,6 +187,14 @@ const TVPlayer: React.FC<TVPlayerProps> = ({
                 channelName="NDRTV"
                 news={news}
                 adminMessages={adminMessages}
+                isVisible={showControls}
+            />
+
+            {/* Tap surface to show controls */}
+            <div
+                className="absolute inset-0 z-0 cursor-pointer"
+                onClick={resetHideTimer}
+                onMouseMove={resetHideTimer}
             />
         </div>
     );

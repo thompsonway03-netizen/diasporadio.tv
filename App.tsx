@@ -31,6 +31,7 @@ const App: React.FC = () => {
   const [newsHistory, setNewsHistory] = useState<NewsItem[]>([]);
 
   const [isPlaying, setIsPlaying] = useState(false); // Radio Play State (Admin broadcast)
+  const [radioCurrentTime, setRadioCurrentTime] = useState(0); // LIVE POSITION
   const [listenerHasPlayed, setListenerHasPlayed] = useState(false); // Listener play button state
   const [activeTrackId, setActiveTrackId] = useState<string | null>(null);
   const [activeTrackUrl, setActiveTrackUrl] = useState<string | null>(null);
@@ -131,6 +132,7 @@ const App: React.FC = () => {
         setIsTvActive(sState.is_tv_active);
         setActiveTrackId(sState.current_track_id);
         setCurrentTrackName(sState.current_track_name || 'Station Standby');
+        setRadioCurrentTime(sState.current_offset || 0); // Set initial live offset
         if (sState.current_track_url) {
           setActiveTrackUrl(sState.current_track_url);
         } else if (sState.current_track_id && processedMedia.length > 0) {
@@ -158,6 +160,20 @@ const App: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // --- ADMIN LIVE HEARTBEAT ---
+  useEffect(() => {
+    if (role === UserRole.ADMIN && isPlaying && activeTrackId) {
+      const interval = setInterval(() => {
+        dbService.updateStationState({
+          current_offset: radioCurrentTime,
+          is_playing: true,
+          timestamp: Date.now()
+        }).catch(err => console.debug("Heartbeat sync failed:", err));
+      }, 5000); // Pulse every 5s
+      return () => clearInterval(interval);
+    }
+  }, [role, isPlaying, activeTrackId, radioCurrentTime]);
 
   useEffect(() => {
     if (role === UserRole.ADMIN) {
@@ -349,6 +365,7 @@ const App: React.FC = () => {
           current_track_id: track.id,
           current_track_name: track.name,
           current_track_url: isCloudUrl ? track.url : null,
+          current_offset: 0, // Reset for new track
           timestamp: Date.now()
         }).catch(err => console.error("❌ Immediate Advancement Sync Fail:", err));
       }
@@ -469,22 +486,48 @@ const App: React.FC = () => {
       setIsPlaying(false);
       setListenerHasPlayed(false);
     }
-  }, [handleStopNews, handlePlayAll]);
+    // Broadcaster sync
+    if (role === UserRole.ADMIN) {
+      dbService.updateStationState({
+        is_playing: play,
+        is_tv_active: play ? false : isTvActive,
+        timestamp: Date.now()
+      });
+    }
+  }, [handleStopNews, handlePlayAll, role, isTvActive]);
 
   const handleVideoToggle = useCallback((active: boolean) => {
     setIsTvActive(active);
     if (active) {
-      handleRadioToggle(false);
+      setIsPlaying(false);
+      setListenerHasPlayed(false);
     }
-  }, [handleRadioToggle]);
+    // Broadcaster sync
+    if (role === UserRole.ADMIN) {
+      dbService.updateStationState({
+        is_tv_active: active,
+        is_playing: active ? false : isPlaying,
+        timestamp: Date.now()
+      });
+    }
+  }, [role, isPlaying]);
 
   const handlePlayVideo = useCallback((track: MediaFile) => {
     handleStopNews(); // Ensure news stops
     setActiveVideoId(track.id);
     handleRadioToggle(false); // Master stop radio
     setIsTvActive(true);
+    // Explicitly update cloud so listeners switch
+    if (role === UserRole.ADMIN) {
+      dbService.updateStationState({
+        is_playing: false,
+        is_tv_active: true,
+        current_video_id: track.id,
+        timestamp: Date.now()
+      });
+    }
     handleLogAdd(`TV Feed: Now Broadcasting ${track.name}`);
-  }, [handleRadioToggle, handleLogAdd, handleStopNews]);
+  }, [handleRadioToggle, handleLogAdd, handleStopNews, role]);
 
   return (
     <div className="min-h-[100dvh] bg-[#f0fff4] text-[#008751] flex flex-col max-w-md mx-auto relative shadow-2xl border-x border-green-100/30 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
@@ -579,14 +622,18 @@ const App: React.FC = () => {
               if (playing) setShowJoinPrompt(false);
             }
             if (playing) {
-              setIsTvActive(false);
+              setIsTvActive(false); // Mutual Exclusivity
             }
           }}
+          onTimeUpdate={(time) => {
+            if (role === UserRole.ADMIN) setRadioCurrentTime(time);
+          }}
+          startTime={role === UserRole.LISTENER ? radioCurrentTime : 0}
           activeTrackUrl={activeTrackUrl}
           currentTrackName={currentTrackName}
           onTrackEnded={handlePlayNext}
           isDucking={isDucking}
-          forcePlaying={role === UserRole.ADMIN ? isPlaying : (isPlayingState && listenerHasPlayed)}
+          forcePlaying={role === UserRole.ADMIN ? isPlaying : (isPlayingState && listenerHasPlayed && !isTvActive)}
           isAdmin={role === UserRole.ADMIN}
           showPlayButton={role !== UserRole.ADMIN}
         />

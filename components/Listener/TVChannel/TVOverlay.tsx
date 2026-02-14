@@ -9,13 +9,22 @@ interface TVOverlayProps {
     channelName: string;
     news: NewsItem[];
     adminMessages: AdminMessage[];
+    isVisible?: boolean;
 }
 
-const TVOverlay: React.FC<TVOverlayProps> = ({ isPlaying, onTogglePlay, onToggleFullscreen, channelName, news, adminMessages }) => {
+const TVOverlay: React.FC<TVOverlayProps> = ({
+    isPlaying,
+    onTogglePlay,
+    onToggleFullscreen,
+    channelName,
+    news,
+    adminMessages,
+    isVisible = true
+}) => {
     return (
         <div className="absolute inset-0 z-10 pointer-events-none group select-none">
             {/* 1. TOP LEFT: STATION BUG (Reduced Size & Tighter Position) */}
-            <div className={`absolute top-2 left-2 animate-tv-pop z-20`}>
+            <div className={`absolute top-2 left-2 animate-tv-pop z-20 transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="flex items-center bg-black/40 backdrop-blur-sm px-1.5 py-0.5 border border-white/10 shadow-lg">
                     <span className="text-[9px] font-black tracking-tighter drop-shadow-md flex italic">
                         <span className="text-[#008751]">ND</span>
@@ -26,7 +35,7 @@ const TVOverlay: React.FC<TVOverlayProps> = ({ isPlaying, onTogglePlay, onToggle
             </div>
 
             {/* 2. TOP RIGHT: STATUS (Reduced Size & Tighter Position) */}
-            <div className="absolute top-2 right-2 z-20">
+            <div className={`absolute top-2 right-2 z-20 transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="flex items-center space-x-1 bg-black/40 backdrop-blur-sm px-2 py-0.5 border border-white/10 shadow-lg">
                     <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
                     <span className="text-[6px] font-black text-white/90 uppercase tracking-[0.1em]">ON-AIR</span>
@@ -34,7 +43,7 @@ const TVOverlay: React.FC<TVOverlayProps> = ({ isPlaying, onTogglePlay, onToggle
             </div>
 
             {/* 3. BOTTOM: INTEGRATED NEWS TICKER (Inside Screen) */}
-            <div className="absolute bottom-0 inset-x-0 h-6 bg-[#008751] backdrop-blur-md border-t border-white/20 flex items-center overflow-hidden z-20">
+            <div className={`absolute bottom-0 inset-x-0 h-6 bg-[#008751] backdrop-blur-md border-t border-white/20 flex items-center overflow-hidden z-20 transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
                 {/* Nigeria Flag Indicator on the Left */}
                 <div className="flex h-full px-2 items-center bg-black/20 border-r border-white/10 shrink-0">
                     <div className="flex w-4 h-2.5 rounded-[1px] overflow-hidden shadow-sm">
@@ -63,34 +72,34 @@ const TVOverlay: React.FC<TVOverlayProps> = ({ isPlaying, onTogglePlay, onToggle
             </div>
 
             {/* 4. BOTTOM LEFT: PLAY/PAUSE (Moved to corners) */}
-            <div className="absolute bottom-10 left-4 pointer-events-auto z-50">
+            <div className={`absolute bottom-8 left-4 pointer-events-auto z-50 transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
                         onTogglePlay();
                     }}
-                    className="w-12 h-12 bg-white/20 hover:bg-green-600/90 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
+                    className="w-10 h-10 bg-white/20 hover:bg-green-600/90 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
                     title={isPlaying ? "Pause" : "Play"}
                 >
                     {isPlaying ? (
-                        <i className="fas fa-pause text-base"></i>
+                        <i className="fas fa-pause text-xs"></i>
                     ) : (
-                        <i className="fas fa-play text-base ml-1"></i>
+                        <i className="fas fa-play text-xs ml-1"></i>
                     )}
                 </button>
             </div>
 
             {/* 5. BOTTOM RIGHT: FULLSCREEN (Moved to corners) */}
-            <div className="absolute bottom-10 right-4 pointer-events-auto z-50">
+            <div className={`absolute bottom-8 right-4 pointer-events-auto z-50 transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
                         onToggleFullscreen?.();
                     }}
-                    className="w-12 h-12 bg-white/20 hover:bg-white/40 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
+                    className="w-10 h-10 bg-white/20 hover:bg-white/40 backdrop-blur-2xl border-2 border-white/40 rounded-full flex items-center justify-center text-white shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-90"
                     title="Fullscreen"
                 >
-                    <i className="fas fa-expand text-base"></i>
+                    <i className="fas fa-expand text-xs"></i>
                 </button>
             </div>
 
