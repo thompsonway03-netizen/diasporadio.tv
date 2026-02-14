@@ -693,7 +693,7 @@ const App: React.FC = () => {
               {cloudStatus}
             </span>
           )}
-          {!supabase && <span className="text-[7px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Cloud Offline</span>}
+          {/* {!supabase && <span className="text-[7px] bg-amber-500 text-white px-1.5 py-0.5 rounded font-black uppercase animate-pulse">Cloud Offline</span>} - REMOVED AS REQUESTED */}
           {isDucking && <span className="text-[7px] font-black uppercase text-red-500 animate-pulse bg-red-50 px-1 rounded shadow-sm border border-red-100">Live Broadcast</span>}
           <button
             onClick={role === UserRole.ADMIN ? () => { setRole(UserRole.LISTENER); setListenerHasPlayed(false); } : () => setShowAuth(true)}
@@ -701,7 +701,7 @@ const App: React.FC = () => {
           >
             {role === UserRole.ADMIN ? 'Exit Admin' : 'Admin Login'}
           </button>
-          <div className={`w-3 h-3 rounded-full ${supabase ? 'bg-green-500' : 'bg-gray-400'}`} title={supabase ? "Cloud Connected" : "Cloud Disconnected"}></div>
+          <div className={`w-3 h-3 rounded-full ${supabase ? 'bg-green-500 shadow-[0_0_10px_#22c55e]' : 'bg-red-500 animate-pulse shadow-[0_0_10px_#ef4444]'}`} title={supabase ? "System Online" : "System Offline"}></div>
           {audioStatus !== 'Ready' && <span className="text-[10px] text-green-700 font-bold ml-1">{audioStatus}</span>}
           {lastError && <span className="text-[7px] bg-red-600 text-white px-1.5 py-0.5 rounded ml-2 font-black uppercase animate-bounce">{lastError}</span>}
         </div>
