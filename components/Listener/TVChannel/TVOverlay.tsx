@@ -22,7 +22,7 @@ const TVOverlay: React.FC<TVOverlayProps> = ({
     isVisible = true
 }) => {
     return (
-        <div className="absolute inset-0 z-10 pointer-events-none group select-none">
+        <div className="absolute inset-0 z-40 pointer-events-none group select-none">
             {/* 1. TOP LEFT: STATION BUG (Reduced Size & Tighter Position) */}
             <div className={`absolute top-2 left-2 animate-tv-pop z-20 transition-opacity duration-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="flex items-center bg-black/40 backdrop-blur-sm px-1.5 py-0.5 border border-white/10 shadow-lg">
