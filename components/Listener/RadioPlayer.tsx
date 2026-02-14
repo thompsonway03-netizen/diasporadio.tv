@@ -13,6 +13,7 @@ interface RadioPlayerProps {
   currentTrackName?: string;
   forcePlaying?: boolean;
   onTrackEnded?: () => void;
+  activeTrackId?: string | null;
   isAdmin?: boolean;
   isDucking?: boolean;
   showPlayButton?: boolean;
@@ -26,6 +27,7 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
   currentTrackName = 'Live Stream',
   forcePlaying = false,
   onTrackEnded,
+  activeTrackId,
   isAdmin = false,
   isDucking = false,
   showPlayButton = true
@@ -287,7 +289,7 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({
         }
       }
     }
-  }, [activeTrackUrl]);
+  }, [activeTrackUrl, activeTrackId]);
 
   // LIVE SYNC DRIFT CHECK
   useEffect(() => {

@@ -324,8 +324,8 @@ const App: React.FC = () => {
 
   const handlePlayNext = useCallback(() => {
     console.log('⏭️ [App] handlePlayNext triggered. Role:', role);
-    // Use all audio files from allMedia
-    const audioFiles = allMedia.filter(m => m.type === 'audio');
+    // Use stable ref for media library to avoid stale closures
+    const audioFiles = allMediaRef.current.filter(m => m.type === 'audio');
     if (audioFiles.length === 0) {
       console.warn('⚠️ No audio files found for playlist.');
       setActiveTrackId(null);
@@ -640,6 +640,7 @@ const App: React.FC = () => {
           activeTrackUrl={activeTrackUrl}
           currentTrackName={currentTrackName}
           onTrackEnded={handlePlayNext}
+          activeTrackId={activeTrackId}
           isDucking={isDucking}
           forcePlaying={role === UserRole.ADMIN ? isPlaying : (isPlayingState && listenerHasPlayed && !isTvActive)}
           isAdmin={role === UserRole.ADMIN}
